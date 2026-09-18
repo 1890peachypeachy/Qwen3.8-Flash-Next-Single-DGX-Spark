@@ -527,7 +527,14 @@ if [[ "$CONTAINER_MEM_GIB" -gt "$MAX_CONTAINER_GIB" ]]; then
        (pool ${MEM_TOTAL_GIB%.*} GiB minus OS_RESERVE_GIB=${OS_RESERVE_GIB}). On unified memory
        this is the line between a killed container and a hung host. Lower the budget."
 fi
-if $DO_LAUNCH && python3 -c "import sys; sys.exit(0 if $MEM_AVAIL_GIB < $CONTAINER_MEM_GIB+4 else 1)"; then
+# MemAvailable accounting shift from kernel VM tunables (spark2 2026-09-17):
+# MemAvailable subtracts the per-zone HIGH watermark = min_free + 2*wsf% of RAM.
+# Under files/sysctl-spark3.conf (min_free 4 GiB, wsf 300) MemAvailable reads
+# ~11.3 GiB lower for identical physical memory; the sysctl conf header
+# prescribes re-deriving floors when the tunables are applied. Computed live
+# (self-contained /proc reads; set -u safe) so stock-tunable nodes see ~0.
+VM_HIGH_SHIFT_GIB=$(( ( $(cat /proc/sys/vm/min_free_kbytes 2>/dev/null || echo 0) + $(cat /proc/sys/vm/watermark_scale_factor 2>/dev/null || echo 0) * 2 * ${MEM_TOTAL_GIB%.*} * 1048576 / 10000 ) / 1048576 ))
+if $DO_LAUNCH && python3 -c "import sys; sys.exit(0 if $MEM_AVAIL_GIB + ${VM_HIGH_SHIFT_GIB:-0} < $CONTAINER_MEM_GIB+4 else 1)"; then
     err "Only ${MEM_AVAIL_GIB%.*} GiB available now but the container may use ${CONTAINER_MEM_GIB} GiB.
        Something else is holding memory (docker ps; ps --sort=-rss)."
 fi

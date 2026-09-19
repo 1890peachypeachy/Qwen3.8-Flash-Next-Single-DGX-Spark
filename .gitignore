@@ -104,6 +104,7 @@
 
 # --- API usage reporting and CPU-only regression ------------------------
 !/docs/cache-reporting.md
+!/docs/spark2-supervisor-enablement-2026-09-19.md
 !/tests/test_prompt_token_details.py
 
 # Deliberately NOT tracked:

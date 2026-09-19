@@ -29,6 +29,7 @@
 !/systemd/qwen38-flash-maintenance.service
 !/systemd/qwen38-flash-maintenance.timer
 !/systemd/qwen38-flash-heartbeat.timer
+!/systemd/qwen38-flash-heartbeat.service
 !/systemd/qwen38-flash-supervisor-failure@.service
 
 # --- launcher support and patch generators -----------------------------

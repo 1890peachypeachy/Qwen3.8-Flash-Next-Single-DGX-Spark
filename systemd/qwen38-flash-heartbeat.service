@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Daily heartbeat service — fired by qwen38-flash-heartbeat.timer.
+#
+# Upstream #41 shipped heartbeat.timer without this unit (enable would fail
+# with "Unit qwen38-flash-heartbeat.service does not exist"). Added in our
+# fork so the README's enable sequence works as documented.
+#
+# heartbeat.sh is self-locating (REPO_DIR from its own path) and silent-safe:
+# with ALERT_WEBHOOK unset it appends to logs/alert.log instead of posting.
+[Unit]
+Description=Qwen3.8-Flash-Next daily heartbeat
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/qwen38-flash-next
+ExecStart=%h/qwen38-flash-next/scripts/heartbeat.sh
